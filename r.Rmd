@@ -1,54 +1,66 @@
-#set working environment folder
-setwd("C:/dev/Kaggle/kickstarter_proj")
+---
+title: "R Notebook"
+output: html_notebook
+---
 
-#read CSV file including header
-kickstart <- read.csv("ks-projects-201801.csv", header = TRUE)
 
-#create a backup dataset
-ksproj <- kickstart
+Read CSV file including header
+
+```{r}
+ksproj <- read.csv("ks-projects-201801.csv", header = TRUE)
+```
 
 #remove state projects as "live" and "undefined"
+
+```{r}
 ksproj <- subset(kickstart, 
                  state != "live" & state != "undefined",
                  select = category:usd_goal_real)
+head(ksproj)
+```
 
-#View(ksproj)
-
-#convert categorical variables into numerical ones
+Convert categorical variables into numerical ones
+```{r}
 ksproj$state_int <- as.integer(ksproj$state)
 ksproj$subcat_int <- as.integer(ksproj$category)
 ksproj$cat_int <- as.integer(ksproj$main_category)
 ksproj$ctry_int <- as.integer(ksproj$country)
+```
 
+Convert project state to binary variable by 
+1-canceled, 2-failed, 3-live, 4-successful, 5-suspended, 6-undefined
+```{r}
 ksproj$state_int[ksproj$state_int != 4] <- 0
 ksproj$state_int[ksproj$state_int == 4] <- 1
+head(ksproj)
+```
 
-#test <- ksproj[1:30,]
-#ksproj <- within(test,{
-#  state_int <- ifelse( xor(state_int != 4, state_int == 4),1,0)
-#})
-
-# 1-canceled, 2-failed, 3-live, 4-successful, 5-suspended, 6-undefined
-
+Select only columns useful for running the model
+```{r}
 to_run <- subset(ksproj, select = c(14,16,15,17,13))
+head(to_run)
+```
 
-#View(to_run)
-
-#set proportion of train and test datasets
+Select a random sample
+```{r}
 smp_size <- floor(0.8 * nrow(to_run))
 set.seed(123)
 
-#select a random sample
 train_ind <- sample(seq_len(nrow(to_run)), size = smp_size)
 
 train <- to_run[train_ind, ]
 test <- to_run[-train_ind, ]
 
-#head(train1)
+head(train)
+head(test)
+```
 
+```{r}
 model <- glm(state_int ~.,family=binomial(link='logit'),data=train)
 
 summary(model)
+```
+
+```{r}
 anova(model, test = "Chisq")
-
-
+```
