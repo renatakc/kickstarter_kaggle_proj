@@ -1,6 +1,3 @@
-#set working environment folder
-setwd("C:/dev/Kaggle/kickstarter_proj")
-
 #read CSV file including header
 kickstart <- read.csv("ks-projects-201801.csv", header = TRUE)
 
